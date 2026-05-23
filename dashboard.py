@@ -196,24 +196,24 @@ if page == "🏠 Overview":
         fig = go.Figure()
         fig.add_trace(go.Scatter(
             x=monthly["month"], y=monthly["total_spent"],
-            mode="lines+markers",
+            mode="lines+markers+text",
             line=dict(color="#00d4ff", width=3),
             marker=dict(size=10, color="#7b2fff",
                         line=dict(color="#00d4ff", width=2)),
             fill="tozeroy",
             fillcolor="rgba(0,212,255,0.1)",
             name="Monthly Spend",
+            # FIX: use text on trace instead of annotations — always visible
+            text=[f"₹{v:,.0f}" for v in monthly["total_spent"]],
+            textposition="top center",
+            textfont=dict(color="#00d4ff", size=12, family="Inter"),
         ))
-        for i, row in monthly.iterrows():
-            fig.add_annotation(
-                x=row["month"], y=row["total_spent"],
-                text=f"₹{row['total_spent']:,.0f}",
-                showarrow=False, yshift=18,
-                font=dict(color="#00d4ff", size=11)
-            )
-        fig.update_layout(**PT, height=320,
+        # FIX: extend y-axis so top labels are never clipped
+        fig.update_yaxes(range=[0, monthly["total_spent"].max() * 1.25])
+        fig.update_layout(**PT, height=340,
                           xaxis_tickangle=-20,
-                          margin=dict(t=20,b=60,l=20,r=20))
+                          # FIX: bigger top margin so labels have room
+                          margin=dict(t=40,b=60,l=20,r=20))
         st.plotly_chart(fig, use_container_width=True)
 
     with col2:
@@ -225,19 +225,31 @@ if page == "🏠 Overview":
             hole=0.6,
             marker=dict(colors=GRAD,
                         line=dict(color="#020408", width=2)),
+            # FIX: show label + percent + value all together
             textinfo="label+percent",
-            textfont=dict(size=11, color="white"),
+            textfont=dict(size=12, color="white"),
+            # FIX: pull slices slightly apart so labels don't overlap
+            pull=[0.03] * len(cat),
+            # FIX: show text outside so nothing is hidden inside small slices
+            textposition="outside",
+            automargin=True,
         ))
         fig_pie.add_annotation(
-            text=f"<b>₹{summary['total_spent_₹']:,.0f}</b><br>Total",
+            text=f"<b>₹{summary['total_spent_₹']:,.0f}</b><br><span style='font-size:11px'>Total</span>",
             x=0.5, y=0.5, showarrow=False,
-            font=dict(size=14, color="#00d4ff")
+            font=dict(size=13, color="#00d4ff")
         )
-        fig_pie.update_layout(**PT, height=320,
-                              showlegend=False,
-                              margin=dict(t=20,b=20,l=20,r=20))
+        fig_pie.update_layout(**PT, height=340,
+                              showlegend=True,
+                              legend=dict(
+                                  font=dict(color="white", size=11),
+                                  bgcolor="rgba(0,0,0,0)",
+                              ),
+                              # FIX: more margin so outside labels aren't cut
+                              margin=dict(t=20,b=20,l=10,r=10))
         st.plotly_chart(fig_pie, use_container_width=True)
 
+    # FIX: heatmap — use a lighter colorscale so dark cells don't hide numbers
     st.markdown('<div class="section-header">🔥 Spending Heatmap</div>',
                 unsafe_allow_html=True)
     pivot = expenses.pivot_table(
@@ -245,16 +257,27 @@ if page == "🏠 Overview":
         columns="month", aggfunc="sum", fill_value=0
     )
     fig_heat = px.imshow(
-        pivot, text_auto=".0f",
+        pivot,
+        text_auto=".0f",
+        # FIX: use a scale that keeps cells light enough to read numbers on
         color_continuous_scale=[
-            [0,"#0a0f1e"],[0.5,"#7b2fff"],[1,"#00d4ff"]
+            [0,"#0d1b3e"],[0.4,"#7b2fff"],[0.75,"#00d4ff"],[1,"#00ffcc"]
         ],
         aspect="auto",
     )
-    fig_heat.update_traces(textfont=dict(color="white", size=12))
-    fig_heat.update_layout(**PT, height=350,
-                           margin=dict(t=20,b=20,l=20,r=20),
-                           coloraxis_showscale=False)
+    # FIX: bold white text on every cell, larger size
+    fig_heat.update_traces(
+        textfont=dict(color="white", size=13),
+        texttemplate="<b>%{text}</b>",
+    )
+    fig_heat.update_layout(
+        **PT, height=360,
+        margin=dict(t=20,b=20,l=20,r=20),
+        coloraxis_showscale=False,
+        # FIX: white axis tick labels so category/month names are readable
+        xaxis=dict(tickfont=dict(color="white", size=12)),
+        yaxis=dict(tickfont=dict(color="white", size=12)),
+    )
     st.plotly_chart(fig_heat, use_container_width=True)
 
 # ═════════════════════════════════════════════════════════════════════════════
