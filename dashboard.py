@@ -709,3 +709,55 @@ elif page == "➕ Add Expense":
             use_container_width=True,
             height=400,
         )
+
+    # ── Delete Expense ────────────────────────────────────────────────────────
+    st.markdown("---")
+    st.markdown('<div class="section-header">🗑️ Delete an Expense</div>',
+                unsafe_allow_html=True)
+
+    del_df = pd.read_csv("data/expenses.csv")
+
+    if del_df.empty:
+        st.info("No expenses found to delete.")
+    else:
+        # Build a readable label for each row
+        del_df["_label"] = (
+            del_df["date"].astype(str) + "  |  " +
+            del_df["category"].astype(str) + "  |  " +
+            del_df["description"].astype(str) + "  |  ₹" +
+            del_df["amount"].astype(str)
+        )
+
+        col_d1, col_d2 = st.columns([3, 1])
+
+        with col_d1:
+            selected_label = st.selectbox(
+                "Select expense to delete",
+                del_df["_label"].tolist(),
+                index=0,
+            )
+
+        with col_d2:
+            st.markdown("<br>", unsafe_allow_html=True)
+            if st.button("🗑️ Delete", type="primary"):
+                # Find the row index matching the selected label
+                drop_idx = del_df[del_df["_label"] == selected_label].index
+                del_df   = del_df.drop(index=drop_idx).drop(columns=["_label"])
+                del_df.to_csv("data/expenses.csv", index=False)
+                st.success("✅ Expense deleted successfully!")
+                load_all.clear()
+                st.rerun()
+
+        # Show selected row as a preview
+        preview = del_df[del_df["_label"] == selected_label]
+        if not preview.empty:
+            r = preview.iloc[0]
+            st.markdown(f"""
+            <div class="insight-card" style="border-left:4px solid #ff4444">
+                📅 <b>{r['date']}</b> &nbsp;|&nbsp;
+                📂 <b>{r['category']}</b> &nbsp;|&nbsp;
+                📝 {r['description']} &nbsp;|&nbsp;
+                💰 <b>₹{r['amount']}</b> &nbsp;|&nbsp;
+                💳 {r['payment_method']}
+            </div>
+            """, unsafe_allow_html=True)
