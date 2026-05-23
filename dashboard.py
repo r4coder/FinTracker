@@ -111,7 +111,7 @@ GRAD = ["#00d4ff","#7b2fff","#00ff88","#ffcc00",
         "#ff6b6b","#ff9500","#1abc9c","#e74c3c",
         "#9b59b6","#3498db"]
 
-# ── Load data (cache_data but can be cleared on demand) ───────────────────────
+# ── Load data ─────────────────────────────────────────────────────────────────
 @st.cache_data
 def load_all():
     expenses, budgets = load_data()
@@ -178,7 +178,6 @@ if page == "🏠 Overview":
     </div>
     """, unsafe_allow_html=True)
 
-    # KPIs
     c1,c2,c3,c4,c5,c6 = st.columns(6)
     c1.metric("💸 Total Spent",   f"₹{summary['total_spent_₹']:,.0f}")
     c2.metric("📅 Monthly Avg",   f"₹{summary['avg_monthly_₹']:,.0f}")
@@ -239,7 +238,6 @@ if page == "🏠 Overview":
                               margin=dict(t=20,b=20,l=20,r=20))
         st.plotly_chart(fig_pie, use_container_width=True)
 
-    # Heatmap
     st.markdown('<div class="section-header">🔥 Spending Heatmap</div>',
                 unsafe_allow_html=True)
     pivot = expenses.pivot_table(
@@ -253,10 +251,7 @@ if page == "🏠 Overview":
         ],
         aspect="auto",
     )
-    # FIX: make heatmap annotation text white and bold so it's visible
-    fig_heat.update_traces(
-        textfont=dict(color="white", size=12)
-    )
+    fig_heat.update_traces(textfont=dict(color="white", size=12))
     fig_heat.update_layout(**PT, height=350,
                            margin=dict(t=20,b=20,l=20,r=20),
                            coloraxis_showscale=False)
@@ -293,13 +288,11 @@ elif page == "📂 Category Analysis":
             ),
             text=[f"₹{v:,.0f}" for v in cat["total_spent"]],
             textposition="outside",
-            # FIX: visible white text labels
             textfont=dict(color="white", size=11),
             cliponaxis=False,
         ))
         fig_bar.update_layout(**PT, height=420,
                               xaxis_title="Total Spent (₹)",
-                              # FIX: extra right margin so labels aren't clipped
                               margin=dict(t=20,b=20,l=20,r=120))
         st.plotly_chart(fig_bar, use_container_width=True)
 
@@ -319,7 +312,6 @@ elif page == "📂 Category Analysis":
             marker_color=colors_budget,
             text=[f"{v}%" for v in cat["budget_used_%"]],
             textposition="outside",
-            # FIX: visible white text labels
             textfont=dict(color="white", size=11),
             cliponaxis=False,
         ))
@@ -328,7 +320,6 @@ elif page == "📂 Category Analysis":
                              annotation_text="Budget Limit")
         fig_budget.update_layout(**PT, height=420,
                                  xaxis_title="Budget Used (%)",
-                                 # FIX: extra right margin
                                  margin=dict(t=20,b=20,l=20,r=80))
         st.plotly_chart(fig_budget, use_container_width=True)
 
@@ -355,7 +346,6 @@ elif page == "📅 Monthly Trends":
 
     st.markdown("---")
 
-    # Monthly trend
     fig = make_subplots(rows=2, cols=1,
                         subplot_titles=["Total Monthly Spending",
                                         "Number of Transactions"],
@@ -368,7 +358,6 @@ elif page == "📅 Monthly Trends":
         ),
         text=[f"₹{v:,.0f}" for v in monthly["total_spent"]],
         textposition="outside",
-        # FIX: visible labels + no clipping
         textfont=dict(color="white", size=11),
         cliponaxis=False,
         name="Total Spent",
@@ -378,12 +367,10 @@ elif page == "📅 Monthly Trends":
         marker_color="#00ff88",
         text=monthly["num_transactions"],
         textposition="outside",
-        # FIX: visible labels + no clipping
         textfont=dict(color="white", size=11),
         cliponaxis=False,
         name="Transactions",
     ), row=2, col=1)
-    # FIX: extend y-axis range by 15% so outside labels don't get clipped
     fig.update_yaxes(range=[0, monthly["total_spent"].max() * 1.18], row=1, col=1)
     fig.update_yaxes(range=[0, monthly["num_transactions"].max() * 1.18], row=2, col=1)
     fig.update_layout(**PT, height=580,
@@ -391,7 +378,6 @@ elif page == "📅 Monthly Trends":
                       margin=dict(t=50,b=20,l=20,r=20))
     st.plotly_chart(fig, use_container_width=True)
 
-    # Category trend over months
     st.markdown('<div class="section-header">📈 Category Trends Over Months</div>',
                 unsafe_allow_html=True)
     cat_monthly = expenses.groupby(
@@ -445,7 +431,6 @@ elif page == "💳 Payment Methods":
             marker=dict(colors=GRAD[:len(pay)],
                         line=dict(color="#020408", width=2)),
             textinfo="label+percent",
-            # FIX: white labels on pie
             textfont=dict(color="white", size=12),
         ))
         fig_pie.update_layout(**PT, height=380,
@@ -463,11 +448,9 @@ elif page == "💳 Payment Methods":
                         line=dict(color="#020408", width=1)),
             text=[f"₹{v:,.0f}" for v in pay["total_spent"]],
             textposition="outside",
-            # FIX: visible white labels
             textfont=dict(color="white", size=11),
             cliponaxis=False,
         ))
-        # FIX: extend y range so outside labels aren't clipped
         fig_bar.update_yaxes(range=[0, pay["total_spent"].max() * 1.18])
         fig_bar.update_layout(**PT, height=380,
                               yaxis_title="Total Spent (₹)",
@@ -493,42 +476,40 @@ elif page == "🎯 Budget Tracker":
 
     st.markdown("---")
 
-    months    = expenses["month"].nunique()
-    over      = cat[cat["budget_used_%"] > 100]
-    near      = cat[(cat["budget_used_%"] > 80) &
-                    (cat["budget_used_%"] <= 100)]
-    on_track  = cat[cat["budget_used_%"] <= 80]
+    months   = expenses["month"].nunique()
+    over     = cat[cat["budget_used_%"] > 100]
+    near     = cat[(cat["budget_used_%"] > 80) & (cat["budget_used_%"] <= 100)]
+    on_track = cat[cat["budget_used_%"] <= 80]
 
     c1, c2, c3 = st.columns(3)
-    c1.metric("🔴 Over Budget",  len(over))
-    c2.metric("🟡 Near Limit",   len(near))
-    c3.metric("🟢 On Track",     len(on_track))
+    c1.metric("🔴 Over Budget", len(over))
+    c2.metric("🟡 Near Limit",  len(near))
+    c3.metric("🟢 On Track",    len(on_track))
 
     st.markdown("---")
 
-    # Budget progress bars
     st.markdown('<div class="section-header">📊 Budget Usage per Category</div>',
                 unsafe_allow_html=True)
 
     for _, row in cat.iterrows():
-        pct   = min(row["budget_used_%"], 100)
-        color = ("#ff4444" if row["budget_used_%"] > 100
-                 else "#ffcc00" if row["budget_used_%"] > 80
+        raw_pct = row["budget_used_%"]
+        # FIX: safely handle NaN before passing to progress()
+        pct = 0 if pd.isna(raw_pct) else max(0, min(100, int(raw_pct)))
+        color = ("#ff4444" if raw_pct > 100
+                 else "#ffcc00" if raw_pct > 80
                  else "#00ff88")
         col_a, col_b, col_c = st.columns([2, 3, 1])
         col_a.markdown(
             f"<span style='color:white'>{row['category']}</span>",
             unsafe_allow_html=True)
-     pct = 0 if pd.isna(pct) else max(0, min(100, int(pct)))
-col_b.progress(pct)
+        col_b.progress(pct)
         col_c.markdown(
             f"<span style='color:{color};font-weight:700'>"
-            f"{row['budget_used_%']}%</span>",
+            f"{raw_pct}%</span>",
             unsafe_allow_html=True)
 
     st.markdown("---")
 
-    # Savings analysis
     st.markdown('<div class="section-header">💰 Savings Analysis</div>',
                 unsafe_allow_html=True)
     savings = savings_analysis(expenses, budgets)
@@ -542,12 +523,10 @@ col_b.progress(pct)
         ],
         text=[f"₹{v:,.0f}" for v in savings["monthly_savings"]],
         textposition="outside",
-        # FIX: visible white labels
         textfont=dict(color="white", size=11),
         cliponaxis=False,
     ))
-    fig_sav.add_vline(x=0, line_color="white",
-                      line_dash="dash")
+    fig_sav.add_vline(x=0, line_color="white", line_dash="dash")
     fig_sav.update_layout(**PT, height=400,
                           xaxis_title="Monthly Savings (₹)",
                           margin=dict(t=20,b=20,l=20,r=100))
@@ -568,7 +547,6 @@ elif page == "💡 Smart Insights":
 
     st.markdown("---")
 
-    # Insights
     st.markdown('<div class="section-header">🔍 Spending Insights</div>',
                 unsafe_allow_html=True)
     for insight in insights:
@@ -581,12 +559,9 @@ elif page == "💡 Smart Insights":
     col1, col2 = st.columns(2)
 
     with col1:
-        # Essential vs non-essential
         st.markdown('<div class="section-header">🛒 Essential vs Non-Essential</div>',
                     unsafe_allow_html=True)
-        ess_data = expenses.groupby(
-            "is_essential"
-        )["amount"].sum()
+        ess_data = expenses.groupby("is_essential")["amount"].sum()
         fig_ess = go.Figure(go.Pie(
             labels=["Non-Essential","Essential"],
             values=ess_data.values,
@@ -596,7 +571,6 @@ elif page == "💡 Smart Insights":
                 line=dict(color="#020408", width=2)
             ),
             textinfo="label+percent",
-            # FIX: white labels
             textfont=dict(color="white", size=12),
         ))
         fig_ess.update_layout(**PT, height=320,
@@ -605,7 +579,6 @@ elif page == "💡 Smart Insights":
         st.plotly_chart(fig_ess, use_container_width=True)
 
     with col2:
-        # Top 5 expenses
         st.markdown('<div class="section-header">💸 Top 5 Biggest Expenses</div>',
                     unsafe_allow_html=True)
         top5 = top_expenses(expenses, 5)
@@ -620,7 +593,6 @@ elif page == "💡 Smart Insights":
             ),
             text=[f"₹{v:,.0f}" for v in top5["amount"]],
             textposition="outside",
-            # FIX: visible white labels
             textfont=dict(color="white", size=11),
             cliponaxis=False,
         ))
@@ -629,7 +601,6 @@ elif page == "💡 Smart Insights":
                               margin=dict(t=20,b=20,l=20,r=100))
         st.plotly_chart(fig_top, use_container_width=True)
 
-    # Spending radar
     st.markdown('<div class="section-header">🕸️ Spending Pattern Radar</div>',
                 unsafe_allow_html=True)
     top_cats  = cat.head(6)
@@ -679,56 +650,49 @@ elif page == "➕ Add Expense":
     with col1:
         st.markdown('<div class="section-header">📝 Expense Details</div>',
                     unsafe_allow_html=True)
-        date     = st.date_input("📅 Date", datetime.now())
-        category = st.selectbox("📂 Category", [
-            "Food & Dining","Transportation","Shopping",
-            "Entertainment","Bills & Utilities",
-            "Health & Fitness","Education",
-            "Travel","Groceries","Personal Care",
+        date        = st.date_input("📅 Date", datetime.now())
+        category    = st.selectbox("📂 Category", [
+            "Food","Travel","Shopping",
+            "Bills","Entertainment",
+            "Health","Education",
+            "Groceries","Personal Care","Transport",
         ])
         description = st.text_input("📝 Description",
-                                     placeholder="e.g. Zomato order")
-        amount   = st.number_input("💰 Amount (₹)",
-                                    min_value=0.0,
-                                    value=0.0, step=10.0)
-        payment  = st.selectbox("💳 Payment Method", [
+                                    placeholder="e.g. Zomato order")
+        amount      = st.number_input("💰 Amount (₹)",
+                                      min_value=0.0,
+                                      value=0.0, step=10.0)
+        payment     = st.selectbox("💳 Payment Method", [
             "UPI","Credit Card","Debit Card",
             "Cash","Net Banking","Wallet",
         ])
 
         if st.button("➕ Add Expense", type="primary"):
             if amount > 0 and description:
-                # Read latest CSV (bypass cache) so we always append correctly
-                csv_path = "data/expenses.csv"
+                csv_path         = "data/expenses.csv"
                 current_expenses = pd.read_csv(csv_path)
-
-                new_expense = pd.DataFrame([{
-                    "id":             len(current_expenses) + 1,
+                new_expense      = pd.DataFrame([{
                     "date":           date.strftime("%Y-%m-%d"),
-                    "month":          date.strftime("%Y-%m"),
                     "category":       category,
-                    "description":    description,
                     "amount":         amount,
                     "payment_method": payment,
+                    "description":    description,
                     "is_essential":   category in [
-                        "Food & Dining","Bills & Utilities",
-                        "Groceries","Health & Fitness",
-                        "Transportation"
+                        "Food","Bills","Groceries",
+                        "Health","Transport","Travel"
                     ],
+                    "month":          date.strftime("%Y-%m"),
                 }])
                 updated = pd.concat(
                     [current_expenses, new_expense],
                     ignore_index=True
                 )
                 updated.to_csv(csv_path, index=False)
-
                 st.success(
                     f"✅ Added ₹{amount:,.0f} for "
                     f"'{description}' in {category}!"
                 )
                 st.balloons()
-
-                # FIX: clear cache so all pages reflect the new expense
                 load_all.clear()
                 st.rerun()
             else:
@@ -737,15 +701,11 @@ elif page == "➕ Add Expense":
     with col2:
         st.markdown('<div class="section-header">📋 Recent Expenses</div>',
                     unsafe_allow_html=True)
-        # FIX: always read fresh from disk for the recent table
         recent_df = pd.read_csv("data/expenses.csv")
-        recent = recent_df.sort_values(
-            "date", ascending=False
-        ).head(15)
+        recent    = recent_df.sort_values("date", ascending=False).head(15)
         st.dataframe(
-            recent[["date","category",
-                    "description","amount",
-                    "payment_method"]],
+            recent[["date","category","description",
+                    "amount","payment_method"]],
             use_container_width=True,
             height=400,
         )
