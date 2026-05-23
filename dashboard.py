@@ -519,8 +519,8 @@ elif page == "🎯 Budget Tracker":
         col_a.markdown(
             f"<span style='color:white'>{row['category']}</span>",
             unsafe_allow_html=True)
-      pct = 0 if pd.isna(pct) else max(0, min(100, int(pct)))
-      col_b.progress(pct)
+     pct = 0 if pd.isna(pct) else max(0, min(100, int(pct)))
+col_b.progress(pct)
         col_c.markdown(
             f"<span style='color:{color};font-weight:700'>"
             f"{row['budget_used_%']}%</span>",
