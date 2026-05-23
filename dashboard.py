@@ -52,10 +52,13 @@ st.markdown("""
       background: linear-gradient(90deg,#00d4ff,#7b2fff,#00ff88);
   }
   [data-testid="stMetricValue"] {
-      font-size:2rem !important; font-weight:900 !important;
+      font-size:1.1rem !important; font-weight:900 !important;
       background: linear-gradient(135deg,#00d4ff,#7b2fff);
       -webkit-background-clip:text;
       -webkit-text-fill-color:transparent;
+      white-space:nowrap !important;
+      overflow:visible !important;
+      text-overflow:unset !important;
   }
   [data-testid="stMetricLabel"] {
       color:#8892b0 !important; font-size:0.75rem !important;
