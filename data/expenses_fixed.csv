@@ -1,0 +1,11 @@
+date,category,amount,payment_method,description,is_essential,month
+2026-01-05,Food,350.0,UPI,Lunch at cafe,True,2026-01
+2026-01-08,Travel,200.0,Cash,Auto ride,True,2026-01
+2026-01-12,Shopping,2500.0,Card,Bought sneakers,False,2026-01
+2026-01-15,Bills,2200.0,UPI,Electricity bill,True,2026-01
+2026-01-18,Entertainment,600.0,Cash,Movie tickets,False,2026-01
+2026-02-03,Food,450.0,UPI,Restaurant dinner,True,2026-02
+2026-02-07,Travel,350.0,UPI,Taxi fare,True,2026-02
+2026-02-14,Shopping,3200.0,Card,Clothes shopping,False,2026-02
+2026-02-20,Bills,1900.0,UPI,Internet bill,True,2026-02
+2026-02-25,Entertainment,800.0,Card,Concert ticket,False,2026-02
